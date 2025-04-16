@@ -1,0 +1,27 @@
+{
+  "name": "quiz4",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server",
+    "build": "webpack",
+    "dev": "webpack serve --open"
+  },
+  "private": true,
+  "devDependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/preset-env": "^7.26.9",
+    "babel-loader": "^10.0.0",
+    "browser-sync": "^3.0.3",
+    "copy-webpack-plugin": "^13.0.0",
+    "gulp": "^5.0.0",
+    "gulp-debug": "^4.0.0",
+    "gulp-less": "^5.0.0",
+    "html-webpack-plugin": "^5.6.3",
+    "http-server": "^14.1.1",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.1"
+  }
+}
