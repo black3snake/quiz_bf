@@ -21,7 +21,7 @@ gulp.task('serve', function () {
         }
     });
     gulp.watch('./src/*.less', gulp.parallel('less'));
-    gulp.watch(['./*.html', './template/*.html']).on('change', browserSync.reload);
+    gulp.watch(['./*.html', './templates/*.html']).on('change', browserSync.reload);
     gulp.watch(['./src/*.js', './src/components']).on('change', browserSync.reload);
 })
 

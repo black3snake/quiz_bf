@@ -1,9 +1,7 @@
 <section class="form">
     <div class="container">
         <div class="form__content">
-            <h1 class="form__title common__title">Введите свои
-                <span>данные</span>
-            </h1>
+            <h1 class="form__title common__title">Регистрация</h1>
             <div class="form__details">
                 <div class="form__group">
                     <input type="text" class="form__input" id="name" required>
@@ -17,6 +15,10 @@
                     <input type="text" class="form__input" id="email" required>
                     <label for="email" class="form__label">Электронная почта</label>
                 </div>
+                <div class="form__group">
+                    <input type="password" class="form__input" id="password" required>
+                    <label for="password" class="form__label">Пароль</label>
+                </div>
                 <div class="form__agree">
                     <input type="checkbox" name="" id="agree" required>
                     <label for="agree">Я ознакомлен
@@ -26,10 +28,12 @@
                 <div class="form__action">
                     <button class="button" id="process" disabled>Перейти к выбору теста</button>
                 </div>
+                <div class="form-link">Уже зарегистрированы?
+                    <a href="/#/login">Войти</a></div>
             </div>
         </div>
         <div class="form__image">
-            <img src="../static/images/info_image.png" alt="info image">
+            <img src="/images/info_image.png" alt="info image">
         </div>
     </div>
 </section>

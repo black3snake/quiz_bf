@@ -113,7 +113,7 @@
   margin-right: 15px;
 }
 .test .container .test__actions .test__time .test__time-clock {
-  background-image: url("../static/images/timer.png");
+  background-image: url("../images/timer.png");
   background-size: cover;
   background-position: center;
   width: 27px;
