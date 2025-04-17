@@ -1,35 +1,38 @@
 import {UrlManager} from "../utils/url-manager.js";
+import {CustomHttp} from "../services/custom-http.js";
+import config from "../../config/config.js";
 
 export class Choice {
 
     constructor() {
         this.quizzes = [];
         this.routerparams = UrlManager.getQueryParams();
-        UrlManager.checkUserData(this.routerparams);
 
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", "https://testologia.ru/get-quizzes", false);
-        xhr.send();
-
-        if (xhr.status === 200 && xhr.responseText) {
-            try {
-                this.quizzes = JSON.parse(xhr.responseText);
-
-            } catch (e) {
-                location.href = "#/";
-            }
-            this.processQuizzes();
-
-        } else {
-            location.href = "#/";
-        }
+        this.init();
     }
 
+    async init() {
+        try {
+            const result = await CustomHttp.request(config.host + '/tests' );
+
+            if (result) {
+                if (result.error ) {
+                    throw new Error(result.error);
+                }
+                this.quizzes = result;
+                this.processQuizzes();
+            } else  {
+                location.href = '#/';
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     processQuizzes() {
         const choiceOptionsElement = document.getElementById('choice-options');
         if (this.quizzes && this.quizzes.length > 0) {
-            console.log(this.quizzes);
+            // console.log(this.quizzes);
             const that = this;
             this.quizzes.forEach(quiz => {
                 const choiceOptionElement = document.createElement('div');

@@ -1,3 +1,7 @@
+import {CustomHttp} from "../services/custom-http.js";
+import {Auth} from "../services/auth.js";
+import config from "../../config/config.js";
+
 export class Form {
 
     constructor(page) {
@@ -88,27 +92,46 @@ export class Form {
     async processForm() {
         if (this.validateForm()) {
             if (this.page === 'signup') {
-                const result = await fetch('http://localhost:3003/api/signup', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        name: this.fields.find(item => item.name === 'name').element.value
-                    })
-                })
+                try {
+                    const result = await CustomHttp.request(config.host + '/signup', 'POST', {
+                        name: this.fields.find(item => item.name === 'name').element.value,
+                        lastName: this.fields.find(item => item.name === 'lastName').element.value,
+                        email: this.fields.find(item => item.name === 'email').element.value,
+                        password: this.fields.find(item => item.name === 'password').element.value
+                    } );
+
+                    if (result) {
+                        if (result.error || !result.user) {
+                            throw new Error(result.message);
+                        }
+
+                        // Auth.setTokens(result.accessToken, result.refreshToken);
+                        location.href = '#/choice';
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+
             } else {
+                try {
+                    const result = await CustomHttp.request(config.host + '/login', 'POST', {
+                        email: this.fields.find(item => item.name === 'email').element.value,
+                        password: this.fields.find(item => item.name === 'password').element.value
+                    } );
 
+                    if (result) {
+                        if (result.error || !result.accessToken || !result.refreshToken
+                            || !result.fullName || !result.userId) {
+                            throw new Error(result.message);
+                        }
+
+                        Auth.setTokens(result.accessToken, result.refreshToken);
+                        location.href = '#/choice';
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
             }
-
-
-            let paramString = '';
-            this.fields.forEach(item => {
-                paramString += (!paramString ? '?' : '&') + item.name + '=' + item.element.value;
-            })
-
-            location.href = '#/choice' + paramString;
         }
     }
 }
