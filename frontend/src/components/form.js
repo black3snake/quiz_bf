@@ -1,6 +1,8 @@
 import {CustomHttp} from "../services/custom-http.js";
 import {Auth} from "../services/auth.js";
 import config from "../../config/config.js";
+// import '../../src/less/common.less'
+// import '../../src/less/form.less'
 
 export class Form {
 
@@ -8,6 +10,14 @@ export class Form {
         this.agreeElement = null;
         this.processElement = null;
         this.page = page;
+        this.email = null;
+
+        const accessToken = localStorage.getItem(Auth.accessTokenKey);
+        if (accessToken) {
+            location.href = '#/choice';
+            return;
+        }
+
         this.fields = [
             {
                 name: "email",
@@ -91,46 +101,60 @@ export class Form {
 
     async processForm() {
         if (this.validateForm()) {
+            this.email = this.fields.find(item => item.name === 'email').element.value;
+            const password = this.fields.find(item => item.name === 'password').element.value;
+
             if (this.page === 'signup') {
                 try {
                     const result = await CustomHttp.request(config.host + '/signup', 'POST', {
                         name: this.fields.find(item => item.name === 'name').element.value,
                         lastName: this.fields.find(item => item.name === 'lastName').element.value,
-                        email: this.fields.find(item => item.name === 'email').element.value,
-                        password: this.fields.find(item => item.name === 'password').element.value
-                    } );
+                        email: this.email,
+                        password: password,
+                    });
 
                     if (result) {
+                        if (result.error.toString().includes('email')) {
+                            alert(result.error);
+                            throw new Error(result.message);
+                        }
                         if (result.error || !result.user) {
                             throw new Error(result.message);
                         }
 
                         // Auth.setTokens(result.accessToken, result.refreshToken);
-                        location.href = '#/choice';
+                        // location.href = '#/choice';
                     }
                 } catch (error) {
-                    console.log(error);
-                }
-
-            } else {
-                try {
-                    const result = await CustomHttp.request(config.host + '/login', 'POST', {
-                        email: this.fields.find(item => item.name === 'email').element.value,
-                        password: this.fields.find(item => item.name === 'password').element.value
-                    } );
-
-                    if (result) {
-                        if (result.error || !result.accessToken || !result.refreshToken
-                            || !result.fullName || !result.userId) {
-                            throw new Error(result.message);
-                        }
-
-                        Auth.setTokens(result.accessToken, result.refreshToken);
-                        location.href = '#/choice';
+                    if (error.toString().includes('already exist')) {
+                        alert(error);
                     }
-                } catch (error) {
-                    console.log(error);
+                    return console.log(error);
                 }
+            }
+
+            try {
+                const result = await CustomHttp.request(config.host + '/login', 'POST', {
+                    email: this.email,
+                    password: password,
+                });
+
+                if (result) {
+                    if (result.error || !result.accessToken || !result.refreshToken
+                        || !result.fullName || !result.userId) {
+                        throw new Error(result.message);
+                    }
+
+                    Auth.setTokens(result.accessToken, result.refreshToken);
+                    Auth.setUserInfo({
+                        fullName: result.fullName,
+                        userId: result.userId,
+                        email: this.email
+                    })
+                    location.href = '#/choice';
+                }
+            } catch (error) {
+                console.log(error);
             }
         }
     }

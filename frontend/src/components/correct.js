@@ -1,8 +1,14 @@
+// import '../../src/less/common.less';
+// import '../../src/less/correct.less';
+
+import {UrlManager} from "../utils/url-manager.js";
+import {Auth} from "../services/auth.js";
+import {CustomHttp} from "../services/custom-http.js";
+import config from "../../config/config.js";
+
 export class Correct {
 
     constructor() {
-        this.userResult = [];
-        this.correctAnswers = null;
         this.originalQuestions = null;
         this.questionsElement = null;
         this.levelElement = null;
@@ -10,80 +16,55 @@ export class Correct {
         this.questionOptionsElement = null;
         this.logoElement = null;
         this.backResult = null;
-        this.objId = null;
-        this.result = null;
+        this.logoElement = document.getElementById("logo");
+        this.backResult = document.getElementById("back-result");
 
-        let resultIdStr = sessionStorage.getItem('resultId');
-        if (resultIdStr) {
-            this.objId = JSON.parse(resultIdStr);
-        } else {
-            console.log('Ошибка в данных sessionStorage');
+        this.routerparams = UrlManager.getQueryParams();
+        this.userInfo = Auth.getUserInfo();
+        if (!this.userInfo) {
+            location.href = '#/';
         }
 
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", 'https://testologia.ru/get-quiz-right?id=' + this.objId.id, false);
-        xhr.send();
-
-        if (xhr.status === 200 && xhr.responseText) {
-            try {
-                this.correctAnswers = JSON.parse(xhr.responseText);
-            } catch (e) {
-                location.href = "#/";
-            }
-        } else {
-            location.href = "#/";
-        }
-        this.start();
-        // console.log(this.correctAnswers);
-
-        this.showQuestion();
-
-
-    }
-
-    start() {
         this.questionsElement = document.getElementById("questions");
         this.levelElement = document.getElementById("level");
 
         this.completeTestElement = document.getElementById("complete-test");
-        const fullName = `${this.objId.name} ${this.objId.lastName}`
-        this.completeTestElement.innerHTML = `Тест выполнил <span>${fullName}, ${this.objId.email}</span>`;
+        this.completeTestElement.innerHTML = `Тест выполнил <span>${this.userInfo.fullName}, ${this.userInfo.email}</span>`;
 
-        this.logoElement = document.getElementById("logo");
         this.logoElement.style.cursor = "pointer";
-        this.logoElement.onclick = () => location.href = "index.html"
+        this.logoElement.onclick = () => location.href = "#/"
 
-
-        this.backResult = document.getElementById("back-result");
         this.backResult.onclick = () => {
-            location.href = '#/result?score=' + this.result.score + '&total=' + this.result.total;
+            location.href = '#/result?id=' + this.routerparams.id
         }
 
-        const testId = 1;
-        const xhrQ = new XMLHttpRequest();
-        xhrQ.open("GET", 'https://testologia.ru/get-quiz?id=' + this.objId.id, false);
-        xhrQ.send();
+        this.start();
 
-        if (xhrQ.status === 200 && xhrQ.responseText) {
+    }
+
+    async start() {
+        if (this.routerparams.id) {
             try {
-                this.originalQuestions = JSON.parse(xhrQ.responseText);
-            } catch (e) {
-                location.href = "#/";
+                const result = await CustomHttp.request(config.host + /tests/ + this.routerparams.id +
+                    '/result/details?userId=' + this.userInfo.userId);
+                if (result) {
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    this.originalQuestions = result;
+                    this.levelElement.innerText = this.originalQuestions.test.name;
+                    this.showQuestion();
+                }
+            } catch (error) {
+                console.log(error);
             }
-        } else {
-            location.href = "#/";
         }
-        // console.log(this.originalQuestions);
-
-        this.levelElement.innerText = this.originalQuestions.name;
-
     }
 
     showQuestion() {
         const that = this;
-        this.loadSessionStorageData();
 
-        this.originalQuestions.questions.forEach((question, index) => {
+        this.originalQuestions.test.questions.forEach((question, index) => {
             // console.log(question.question);
             const questionTitleString = `<span>Вопрос ${index + 1}:</span> ${question.question}`;
             const questionElement = document.createElement('div');
@@ -97,8 +78,6 @@ export class Correct {
             that.questionOptionsElement = document.createElement('div');
             that.questionOptionsElement.className = 'correctAnswer__question-options';
 
-            let chosenVariantAnswer = that.userResult[index].chosenAnswerId === that.correctAnswers[index];
-
             question.answers.forEach(item => {
                 const inputId = `answer-${item.id}`
 
@@ -108,10 +87,8 @@ export class Correct {
                 const fakeRadioElement = document.createElement('span');
                 fakeRadioElement.className = 'correctAnswer__fake-radio';
 
-                if (chosenVariantAnswer && item.id === that.correctAnswers[index]) {
-                    fakeRadioElement.classList.add('success');
-                } else if (!chosenVariantAnswer && item.id === that.userResult[index].chosenAnswerId) {
-                    fakeRadioElement.classList.add('error');
+                if (item.hasOwnProperty('correct')) {
+                    item.correct === true ? fakeRadioElement.classList.add('success') : fakeRadioElement.classList.add('error');
                 }
 
                 const labelElement = document.createElement('label');
@@ -127,24 +104,6 @@ export class Correct {
             questionElement.appendChild(that.questionOptionsElement)
             that.questionsElement.appendChild(questionElement);
         })
-    }
-
-    loadSessionStorageData() {
-        let userResultStr = sessionStorage.getItem('userResult');
-        let resultStr = sessionStorage.getItem('result');
-
-        if (userResultStr) {
-            this.userResult = JSON.parse(userResultStr);
-        } else {
-            console.log('Ошибка в данных sessionStorage');
-        }
-        // console.log(this.userResult);
-        if (resultStr) {
-            this.result = JSON.parse(resultStr);
-        } else {
-            console.log('Ошибка в данных sessionStorage');
-        }
-
     }
 }
 

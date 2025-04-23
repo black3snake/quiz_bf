@@ -32,7 +32,7 @@ export class CustomHttp {
                     return null;
                 }
             }
-            throw new Error(response.statusText + ' : ' + response.status);
+            // throw new Error(response.statusText + ' : ' + response.status);
         }
 
         return await response.json();

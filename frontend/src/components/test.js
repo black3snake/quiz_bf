@@ -1,4 +1,10 @@
 import {UrlManager} from "../utils/url-manager.js";
+import {CustomHttp} from "../services/custom-http.js";
+import config from "../../config/config.js";
+import {Auth} from "../services/auth.js";
+// import '../../src/less/common.less';
+// import '../../src/less/test.less';
+
 
 export class Test {
 
@@ -16,27 +22,27 @@ export class Test {
         this.interval = null;
 
         this.routerparams = UrlManager.getQueryParams();
-        UrlManager.checkUserData(this.routerparams);
+        // UrlManager.checkUserData(this.routerparams);
 
+        this.init();
+    }
+
+    async init() {
         if (this.routerparams.id) {
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", 'https://testologia.ru/get-quiz?id=' + this.routerparams.id, false);
-            xhr.send();
+            try {
+                const result = await CustomHttp.request(config.host + '/tests/' + this.routerparams.id);
 
-            if (xhr.status === 200 && xhr.responseText) {
-                try {
-                    this.quiz = JSON.parse(xhr.responseText);
-                } catch (e) {
-                    location.href = "#/";
+                if (result) {
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    this.quiz = result;
+                    this.startQuiz();
                 }
-            } else {
-                location.href = "#/";
+            } catch (error) {
+                console.log(error);
             }
-            this.startQuiz();
-        } else {
-            location.href = '#/';
         }
-
     }
 
     startQuiz() {
@@ -213,6 +219,7 @@ export class Test {
         }
 
         if (this.currentQuestionIndex > this.quiz.questions.length) {
+            clearInterval(this.interval);
             this.complete();
             return;
         }
@@ -234,63 +241,58 @@ export class Test {
         this.showQuestion();
     }
 
-    complete() {
-        const idObj = {
-            id: this.routerparams.id,
-            name: this.routerparams.name,
-            lastName: this.routerparams.lastName,
-            email: this.routerparams.email,
+    async complete() {
+        // const idObj = {
+        //     id: this.routerparams.id,
+        //     name: this.routerparams.name,
+        //     lastName: this.routerparams.lastName,
+        //     email: this.routerparams.email,
+        // }
+
+
+        const userInfo = Auth.getUserInfo();
+        if (!userInfo) {
+            location.href = '#/';
         }
 
-        clearInterval(this.interval);
+        try {
+            const result = await CustomHttp.request(config.host + /tests/ + this.routerparams.id + '/pass', 'POST',
+                {
+                    userId: userInfo.userId,
+                    results: this.userResult
+                });
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://testologia.ru/pass-quiz?id=' + idObj.id, false);
-        xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8');
-        xhr.send(JSON.stringify({
-            name: idObj.name,
-            lastName: idObj.lastName,
-            email: idObj.email,
-            results: this.userResult
-        }))
-
-        if (xhr.status === 200 && xhr.responseText) {
-            let result = null;
-            try {
-                result = JSON.parse(xhr.responseText);
-            } catch (e) {
-                location.href = "#/";
-            }
             if (result) {
-                // console.log(result);
-                this.saveSessionStorage(this.userResult, result, idObj);
-                location.href = '#/result?score=' + result.score + '&total=' + result.total;
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                location.href = '#/result?id=' + this.routerparams.id
             }
-        } else {
-            location.href = "#/";
+        } catch (error) {
+            console.log(error);
         }
 
     }
 
-    saveSessionStorage(arrayObj, resultObj, idObj) {
-        let strArray = sessionStorage.getItem('userResult');
-        let strResult = sessionStorage.getItem('result');
-        let strId = sessionStorage.getItem('resultId');
-        if (strArray) {
-            sessionStorage.removeItem('userResult');
-        }
-        sessionStorage.setItem('userResult', JSON.stringify(arrayObj));
-
-        if (strResult) {
-            sessionStorage.removeItem('result');
-        }
-        sessionStorage.setItem('result', JSON.stringify(resultObj));
-
-        if (strId) {
-            sessionStorage.removeItem('resultId');
-        }
-        sessionStorage.setItem('resultId', JSON.stringify(idObj));
-
-
-    }
+    // saveSessionStorage(arrayObj, resultObj, idObj) {
+    //     let strArray = sessionStorage.getItem('userResult');
+    //     let strResult = sessionStorage.getItem('result');
+    //     let strId = sessionStorage.getItem('resultId');
+    //     if (strArray) {
+    //         sessionStorage.removeItem('userResult');
+    //     }
+    //     sessionStorage.setItem('userResult', JSON.stringify(arrayObj));
+    //
+    //     if (strResult) {
+    //         sessionStorage.removeItem('result');
+    //     }
+    //     sessionStorage.setItem('result', JSON.stringify(resultObj));
+    //
+    //     if (strId) {
+    //         sessionStorage.removeItem('resultId');
+    //     }
+    //     sessionStorage.setItem('resultId', JSON.stringify(idObj));
+    //
+    //
+    // }
 }

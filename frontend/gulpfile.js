@@ -4,7 +4,7 @@ const browserSync = require('browser-sync').create();
 const debug = require('gulp-debug');
 
 gulp.task('less', function () {
-    return gulp.src('./src/*.less')
+    return gulp.src('./src/less/*.less')
         .pipe(debug({title: 'src'}))
         .pipe(less())
         .pipe(debug({title: 'less'}))
@@ -20,7 +20,7 @@ gulp.task('serve', function () {
             baseDir: './'
         }
     });
-    gulp.watch('./src/*.less', gulp.parallel('less'));
+    gulp.watch('./src/less/*.less', gulp.parallel('less'));
     gulp.watch(['./*.html', './templates/*.html']).on('change', browserSync.reload);
     gulp.watch(['./src/*.js', './src/components']).on('change', browserSync.reload);
 })

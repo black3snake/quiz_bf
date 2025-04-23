@@ -12,17 +12,35 @@ a {
 }
 @font-face {
   font-family: 'Museo Sans Cyrl';
-  src: url('../fonts/MuseoSansCyrl-500.ttf');
+  src: url('../../fonts/MuseoSansCyrl-500.ttf');
   font-weight: 500;
 }
 @font-face {
   font-family: 'Museo Sans Cyrl bold';
-  src: url('../fonts/MuseoSansCyrl-700.ttf');
+  src: url('../../fonts/MuseoSansCyrl-700.ttf');
   font-weight: 700;
 }
 .header {
   padding: 42px 0 40px 0;
   border-bottom: 1px solid #DCDCF3;
+}
+.header .container {
+  display: flex;
+  justify-content: space-between;
+}
+.header .container .profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.header .container .profile .profile-info .profile-user {
+  font-size: 18px;
+  line-height: 18px;
+}
+.header .container .profile .profile-info .profile-logout {
+  font-size: 12px;
+  line-height: 12px;
 }
 .container {
   max-width: 1200px;

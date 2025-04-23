@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require("copy-webpack-plugin");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     entry: './src/app.js',
@@ -13,8 +14,8 @@ module.exports = {
     },
     devServer: {
         static: '.dist',
-        // {
-        // directory: path.join(__dirname, 'public'),
+            // {
+            // directory: path.join(__dirname, 'public'),
         // },
         compress: true,
         port: 9000,
@@ -31,6 +32,9 @@ module.exports = {
                 {from: "images", to: "images"},
             ],
         }),
+        new MiniCssExtractPlugin({
+            filename: 'styles/[name].css' // Сохраняем в папку css с тем же именем
+        })
     ],
     // module: {
     //     rules: [
@@ -49,4 +53,31 @@ module.exports = {
     //         }
     //     ]
     // }
+    module: {
+        rules: [
+            // {
+            //     test: /\.less$/,
+            //     use: [
+            //         {
+            //             loader: MiniCssExtractPlugin.loader,
+            //             options: {
+            //                 publicPath: '../' // Для корректных путей к ресурсам
+            //             }
+            //         },
+            //         'css-loader',
+            //         'less-loader'
+            //     ]
+            // }
+            {
+                test: /\.less$/,
+                use: [
+                    {loader: 'style-loader'},
+                    {loader: 'css-loader'},
+                    {loader: 'less-loader'},
+                ],
+                include: path.resolve(__dirname, 'src')
+            },
+        ]
+    }
 };
+
